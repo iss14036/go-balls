@@ -15,6 +15,7 @@ func NewRouter(app *appcontext.Application) http.Handler {
 
 	r := mux.NewRouter()
 	tusUploadRouter(r, uploadHandler)
+	publicRouter(r)
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 
@@ -26,4 +27,9 @@ func NewRouter(app *appcontext.Application) http.Handler {
 
 func tusUploadRouter(mainRouter *mux.Router, uh *handler.UploadHandler) {
 	mainRouter.PathPrefix("/files/").Handler(uh.Upload())
+}
+
+func publicRouter(mainRouter *mux.Router) {
+	mainRouter.HandleFunc("/", handler.HealthCheck).Methods("GET")
+	mainRouter.HandleFunc("/ping", handler.HealthCheck).Methods("GET")
 }
