@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"go-balls/appcontext"
 	"go-balls/router"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type (
@@ -32,8 +33,8 @@ func (c *Cli) Run(app *appcontext.Application) {
 	}
 	log.SetReportCaller(true)
 
-	srv := 	&http.Server{
-		Addr:	fmt.Sprintf(":%v", app.Config.AppPort),
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%v", app.Config.AppPort),
 		Handler: router.NewRouter(app),
 	}
 

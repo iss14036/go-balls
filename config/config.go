@@ -2,9 +2,10 @@ package config
 
 import (
 	"fmt"
-	"github.com/subosito/gotenv"
 	"log"
 	"os"
+
+	"github.com/subosito/gotenv"
 )
 
 type (
@@ -28,9 +29,9 @@ func init() {
 
 func NewConfig() Config {
 	c := Config{
-		AppName: GetString("APP_NAME"),
-		AppPort: GetString("APP_PORT"),
-		LogLevel: GetString("LOG_LEVEL"),
+		AppName:     GetString("APP_NAME"),
+		AppPort:     GetString("APP_PORT"),
+		LogLevel:    GetString("LOG_LEVEL"),
 		Environment: GetString("ENVIRONMENT"),
 	}
 	log.Println(fmt.Sprintf("configuration loaded\n %#v", c))
