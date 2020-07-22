@@ -2,8 +2,11 @@ package handler
 
 import (
 	"fmt"
-	"github.com/tus/tusd/pkg/filestore"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	tusd "github.com/tus/tusd/pkg/handler"
+	"github.com/tus/tusd/pkg/s3store"
 	"go-balls/config"
 	"log"
 	"net/http"
@@ -20,29 +23,38 @@ func NewUploadHandler(config *config.Config) *UploadHandler {
 }
 
 func (uh *UploadHandler) Upload() http.Handler {
-	store := filestore.FileStore{
-		Path: "./assets/uploads",
-	}
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		sess := session.Must(session.NewSession(aws.NewConfig().
+			WithMaxRetries(3),
+		))
 
-	composer := tusd.NewStoreComposer()
-	store.UseIn(composer)
+		// Create S3 service client with a specific Region.
+		svc := s3.New(sess, aws.NewConfig().
+			WithRegion(uh.config.AwsRegion),
+		)
 
-	handler, err := tusd.NewHandler(tusd.Config{
-		BasePath:              "/files/",
-		StoreComposer:         composer,
-		NotifyCompleteUploads: true,
-	})
-	if err != nil {
-		panic(fmt.Errorf("Unable to create handler: %s", err))
-	}
+		store := s3store.New(uh.config.AwsBucket, svc)
 
-	go func() {
-		for {
-			event := <-handler.CompleteUploads
-			log.Println("upload...")
-			fmt.Printf("Upload %s finished\n", event.Upload.ID)
+		composer := tusd.NewStoreComposer()
+		store.UseIn(composer)
+
+		handler, err := tusd.NewHandler(tusd.Config{
+			BasePath:              "/files/",
+			StoreComposer:         composer,
+			NotifyCompleteUploads: true,
+		})
+		if err != nil {
+			panic(fmt.Errorf("Unable to create handler: %s", err))
 		}
-	}()
 
-	return http.StripPrefix("/files/", handler)
+		go func() {
+			for {
+				event := <-handler.CompleteUploads
+				log.Println("upload...")
+				fmt.Printf("Upload %s finished\n", event.Upload.ID)
+			}
+		}()
+
+		handler.ServeHTTP(rw, req)
+	})
 }

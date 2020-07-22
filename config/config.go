@@ -14,6 +14,8 @@ type (
 		AppPort     string
 		LogLevel    string
 		Environment string
+		AwsBucket   string
+		AwsRegion   string
 	}
 )
 
@@ -33,6 +35,8 @@ func NewConfig() Config {
 		AppPort:     GetString("APP_PORT"),
 		LogLevel:    GetString("LOG_LEVEL"),
 		Environment: GetString("ENVIRONMENT"),
+		AwsBucket:   GetString("AWS_BUCKET"),
+		AwsRegion:   GetString("AWS_REGION"),
 	}
 	log.Println(fmt.Sprintf("configuration loaded\n %#v", c))
 	return c

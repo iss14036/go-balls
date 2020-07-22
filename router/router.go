@@ -26,7 +26,7 @@ func NewRouter(app *appcontext.Application) http.Handler {
 }
 
 func tusUploadRouter(mainRouter *mux.Router, uh *handler.UploadHandler) {
-	mainRouter.PathPrefix("/files/").Handler(uh.Upload())
+	mainRouter.PathPrefix("/files/").Handler(http.StripPrefix("/files/", uh.Upload()))
 }
 
 func publicRouter(mainRouter *mux.Router) {
