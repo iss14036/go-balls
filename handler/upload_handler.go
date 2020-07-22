@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -35,8 +36,8 @@ func (uh *UploadHandler) Upload() http.Handler {
 
 			if !common.IsFileTypeVideo(fileType) {
 				log.Println("Error: Filetype is not a video")
-				rw.Header().Set("Content-Type", "application/json")
-				rw.WriteHeader(http.StatusBadRequest)
+				err := errors.New("Filetype is not a video")
+				common.SendError(rw, err, http.StatusBadRequest)
 				return
 			}
 		}
