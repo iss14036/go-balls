@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	tusd "github.com/tus/tusd/pkg/handler"
 	"github.com/tus/tusd/pkg/s3store"
+	"go-balls/common"
 	"go-balls/config"
 	"log"
 	"net/http"
@@ -24,6 +25,22 @@ func NewUploadHandler(config *config.Config) *UploadHandler {
 
 func (uh *UploadHandler) Upload() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		metadata := req.Header.Get("Upload-Metadata")
+		if metadata != "" {
+			fileType, err := common.GetFileType(metadata)
+			if err != nil {
+				log.Panic(err)
+			}
+			log.Println(fileType)
+
+			if !common.IsFileTypeVideo(fileType) {
+				log.Println("Error: Filetype is not a video")
+				rw.Header().Set("Content-Type", "application/json")
+				rw.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		}
+
 		sess := session.Must(session.NewSession(aws.NewConfig().
 			WithMaxRetries(3),
 		))
